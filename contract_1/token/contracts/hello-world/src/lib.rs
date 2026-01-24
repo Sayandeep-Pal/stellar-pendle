@@ -7,7 +7,7 @@ use soroban_sdk::{
 #[derive(Clone)]
 pub enum DataKey {
     Asset, // XLM Token Address
-    Bal,   // Simple balance (Global for demo)
+    Balance(Address), // Fixed: Now tracks individual balances
 }
 
 #[contract]
@@ -32,6 +32,21 @@ impl YieldVault {
         env.prng().u64_in_range(MIN_RATE..MAX_RATE + 1)
     }
 
+
+    /// This function is REQUIRED for the PendleWrapper to pull wXLM
+    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) {
+        from.require_auth();
+        let bal_from = Self::balance(env.clone(), from.clone());
+        let bal_to = Self::balance(env.clone(), to.clone());
+
+        if bal_from < amount { panic!("Insufficient wXLM balance"); }
+
+        env.storage().persistent().set(&DataKey::Balance(from), &(bal_from - amount));
+        env.storage().persistent().set(&DataKey::Balance(to), &(bal_to + amount));
+    }
+
+
+
     /// Deposits XLM and grants the user virtual wXLM
     pub fn deposit(env: Env, user: Address, amount: i128) {
         user.require_auth();
@@ -44,7 +59,7 @@ impl YieldVault {
 
         // Update balance
         let current_bal = Self::balance(env.clone(), user.clone());
-        env.storage().persistent().set(&DataKey::Bal, &(current_bal + amount));
+env.storage().persistent().set(&DataKey::Balance(user), &(current_bal + amount));
     }
 
     /// Redeems wXLM for XLM using a randomized rate generated at execution time
@@ -62,8 +77,7 @@ impl YieldVault {
         if current_bal < amount_wxlm {
             panic!("Insufficient balance");
         }
-        env.storage().persistent().set(&DataKey::Bal, &(current_bal - amount_wxlm));
-
+env.storage().persistent().set(&DataKey::Balance(user.clone()), &(current_bal - amount_wxlm));
         // 4. Transfer XLM back to user
         let asset_addr: Address = env.storage().persistent().get(&DataKey::Asset).unwrap();
         let xlm_client = token::Client::new(&env, &asset_addr);
@@ -76,8 +90,8 @@ impl YieldVault {
     }
 
     /// Returns the current balance for the user
-    pub fn balance(env: Env, _user: Address) -> i128 {
-        env.storage().persistent().get(&DataKey::Bal).unwrap_or(0)
+pub fn balance(env: Env, user: Address) -> i128 {
+        env.storage().persistent().get(&DataKey::Balance(user)).unwrap_or(0)
     }
 
     // --- Metadata ---
