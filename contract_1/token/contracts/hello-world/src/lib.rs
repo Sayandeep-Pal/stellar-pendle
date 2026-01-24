@@ -35,8 +35,11 @@ impl YieldVault {
 
     /// This function is REQUIRED for the PendleWrapper to pull wXLM
     pub fn transfer(env: Env, from: Address, to: Address, amount: i128) {
+// This allows the Wrapper to move its own wXLM to the user
+    // without requiring a signature from the contract itself.
+    if from != env.current_contract_address() {
         from.require_auth();
-        let bal_from = Self::balance(env.clone(), from.clone());
+    }        let bal_from = Self::balance(env.clone(), from.clone());
         let bal_to = Self::balance(env.clone(), to.clone());
 
         if bal_from < amount { panic!("Insufficient wXLM balance"); }
@@ -44,6 +47,8 @@ impl YieldVault {
         env.storage().persistent().set(&DataKey::Balance(from), &(bal_from - amount));
         env.storage().persistent().set(&DataKey::Balance(to), &(bal_to + amount));
     }
+
+    
 
 
 
