@@ -11,6 +11,8 @@ pub enum DataKey {
     PtBalance(Address),
     YtBalance(Address),
 LastClaimRate(Address), // NEW: Checkpoint to prevent double-claiming}
+TotalPT, 
+    TotalYT,
 }
 
 #[contract]
@@ -24,6 +26,31 @@ impl PendleWrapper {
         env.storage().persistent().set(&DataKey::WXlmAddress, &wxlm_address);
         env.storage().persistent().set(&DataKey::Maturity, &maturity_timestamp);
     }
+
+    pub fn transfer_pt(env: Env, from: Address, to: Address, amount: i128) {
+        from.require_auth(); 
+        
+        let from_bal = Self::get_pt_balance(env.clone(), from.clone());
+        if from_bal < amount { panic!("Insufficient PT balance"); }
+
+        let to_bal = Self::get_pt_balance(env.clone(), to.clone());
+
+        env.storage().persistent().set(&DataKey::PtBalance(from), &(from_bal - amount));
+        env.storage().persistent().set(&DataKey::PtBalance(to), &(to_bal + amount));
+    }
+
+    pub fn transfer_yt(env: Env, from: Address, to: Address, amount: i128) {
+        from.require_auth();
+
+        let from_bal = Self::get_yt_balance(env.clone(), from.clone());
+        if from_bal < amount { panic!("Insufficient YT balance"); }
+
+        let to_bal = Self::get_yt_balance(env.clone(), to.clone());
+
+        env.storage().persistent().set(&DataKey::YtBalance(from), &(from_bal - amount));
+        env.storage().persistent().set(&DataKey::YtBalance(to), &(to_bal + amount));
+    }
+
 
     /// Step 1: Wrap & Split
     /// User sends 100 wXLM -> Contract gives user 100 PT and 100 YT
@@ -43,6 +70,18 @@ impl PendleWrapper {
         let yt_bal = Self::get_yt_balance(env.clone(), user.clone());
         env.storage().persistent().set(&DataKey::PtBalance(user.clone()), &(pt_bal + amount));
         env.storage().persistent().set(&DataKey::YtBalance(user.clone()), &(yt_bal + amount));
+
+        // --- NEW CODE: Update Global Supply ---
+    // 1. Get current total supply (default to 0 if not set)
+    let current_total_pt: i128 = env.storage().instance().get(&DataKey::TotalPT).unwrap_or(0);
+    let current_total_yt: i128 = env.storage().instance().get(&DataKey::TotalYT).unwrap_or(0);
+
+    // 2. Add the new amount
+    // We use .instance() because this data is shared by EVERYONE, not just one user.
+    env.storage().instance().set(&DataKey::TotalPT, &(current_total_pt + amount));
+    env.storage().instance().set(&DataKey::TotalYT, &(current_total_yt + amount));
+
+
     }
 
     /// Step 2: Redeen Principal (Only after Maturity)
@@ -57,6 +96,11 @@ pub fn redeem_pt(env: Env, user: Address, amount_pt: i128) {
 
     // BURN PT ONLY - Leaves YT untouched
     env.storage().persistent().set(&DataKey::PtBalance(user.clone()), &(pt_bal - amount_pt));
+
+    // --- NEW CODE: Decrease Global PT Supply ---
+    let current_total_pt: i128 = env.storage().instance().get(&DataKey::TotalPT).unwrap_or(0);
+    env.storage().instance().set(&DataKey::TotalPT, &(current_total_pt - amount_pt));
+
 
     let wxlm_addr: Address = env.storage().persistent().get(&DataKey::WXlmAddress).unwrap();
     // Return the principal amount (not affected by yield rate)
@@ -109,6 +153,14 @@ pub fn claim_yield(env: Env, user: Address) {
     env.storage().persistent().set(&pt_key, &(pt_bal - amount));
     env.storage().persistent().set(&yt_key, &(yt_bal - amount));
 
+    // --- NEW CODE: Decrease BOTH Global Supplies ---
+    let current_total_pt: i128 = env.storage().instance().get(&DataKey::TotalPT).unwrap_or(0);
+    let current_total_yt: i128 = env.storage().instance().get(&DataKey::TotalYT).unwrap_or(0);
+
+    env.storage().instance().set(&DataKey::TotalPT, &(current_total_pt - amount));
+    env.storage().instance().set(&DataKey::TotalYT, &(current_total_yt - amount));
+
+    
     // 3. Return the wXLM
     let wxlm_addr: Address = env.storage().persistent().get(&DataKey::WXlmAddress).unwrap();
     token::Client::new(&env, &wxlm_addr).transfer(&env.current_contract_address(), &user, &amount);
@@ -121,5 +173,14 @@ pub fn claim_yield(env: Env, user: Address) {
 
     pub fn get_yt_balance(env: Env, user: Address) -> i128 {
         env.storage().persistent().get(&DataKey::YtBalance(user)).unwrap_or(0)
+    }
+
+    pub fn get_total_pt_supply(env: Env) -> i128 {
+        // Assuming you added TotalPT to DataKey enum and updated mint_split
+        env.storage().instance().get(&DataKey::TotalPT).unwrap_or(0) 
+    }
+
+    pub fn get_total_yt_supply(env: Env) -> i128 {
+         env.storage().instance().get(&DataKey::TotalYT).unwrap_or(0)
     }
 }
