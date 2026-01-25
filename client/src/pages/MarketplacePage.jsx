@@ -294,7 +294,7 @@ export default function MarketplacePage({ address, pendleBalances, refreshData, 
             </div>
 
             {/* Developer Section */}
-            <div className="mt-20 border-t border-white/5 pt-10 flex flex-col items-center gap-4">
+            {/* <div className="mt-20 border-t border-white/5 pt-10 flex flex-col items-center gap-4">
                 <span className="text-[10px] text-text-dim uppercase tracking-[0.5em] font-black">Contract Developer Utils</span>
                 <button
                     onClick={handleInitialize}
@@ -302,7 +302,7 @@ export default function MarketplacePage({ address, pendleBalances, refreshData, 
                 >
                     Bootstrap New Contract Logic
                 </button>
-            </div>
+            </div> */}
         </main>
         </>
     )
