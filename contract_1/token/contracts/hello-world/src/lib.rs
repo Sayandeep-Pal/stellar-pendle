@@ -14,7 +14,7 @@ pub enum DataKey {
 pub struct YieldVault;
 
 // Range constants for the random yield rate
-const MIN_RATE: u64 = 1000; // 1.0x (No gain)
+const MIN_RATE: u64 = 950; // 1.0x (No gain)
 const MAX_RATE: u64 = 1100; // 1.1x (10% max gain)
 
 #[contractimpl]
@@ -75,7 +75,8 @@ env.storage().persistent().set(&DataKey::Balance(user), &(current_bal + amount))
         let rate = Self::get_random_rate(&env);
 
         // 2. Calculate payout: (amount * rate) / 1000
-        let payout = (amount_wxlm * rate as i128) / 1000;
+        // let payout = (amount_wxlm * rate as i128) / 1000;
+        let payout = amount_wxlm;
 
         // 3. Update internal balance (Burn wXLM)
         let current_bal = Self::balance(env.clone(), user.clone());
