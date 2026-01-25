@@ -14,7 +14,7 @@ pub enum DataKey {
 pub struct YieldVault;
 
 // Range constants for the random yield rate
-const MIN_RATE: u64 = 950; // 1.0x (No gain)
+const MIN_RATE: u64 = 1000; // 1.0x (No gain)
 const MAX_RATE: u64 = 1100; // 1.1x (10% max gain)
 
 #[contractimpl]
