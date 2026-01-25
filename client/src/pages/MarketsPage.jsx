@@ -1,13 +1,55 @@
 import { useState } from 'react';
-import { wrapPendle, redeemPt, claimYield, combineAndRedeem } from '../lib/stellar';
+import { wrapPendle, redeemPt, claimYield, combineAndRedeem, initializeWrapper } from '../lib/stellar';
+
+const MarketActionBox = ({ title, subtitle, balanceLabel, balanceValue, tokenLabel, actionLabel, onAction, loading, disabled, inputValue, onInputChange, isNeon }) => {
+    return (
+        <div className="bg-card-dark rounded-[32px] p-8 border border-white/5 flex flex-col gap-6 hover:border-white/10 transition-all group h-full">
+            <div className="flex justify-between items-start">
+                <div>
+                    <h3 className="text-white font-black text-xl italic uppercase tracking-tighter">{title}</h3>
+                    <p className="text-text-dim text-[10px] font-bold uppercase tracking-widest mt-1 opacity-60 leading-relaxed max-w-[200px]">{subtitle}</p>
+                </div>
+                <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+                    <svg className="w-5 h-5 text-text-dim" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                </div>
+            </div>
+
+            <div className="bg-black/30 rounded-2xl p-5 border border-white/5 flex flex-col gap-3 group-hover:bg-black/50 transition-all">
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-text-dim px-1">
+                    <span>{balanceLabel}:</span>
+                    <span><span className="text-white font-mono">{balanceValue}</span></span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <input
+                        type="number"
+                        placeholder="0.00"
+                        className="bg-transparent text-3xl font-light text-white outline-none w-full placeholder-white/5"
+                        value={inputValue}
+                        onChange={(e) => onInputChange(e.target.value)}
+                    />
+                    <span className="text-[10px] font-black bg-white/5 px-2 py-1 rounded border border-white/10 text-text-dim uppercase tracking-tighter">
+                        {tokenLabel}
+                    </span>
+                </div>
+            </div>
+
+            <button
+                onClick={onAction}
+                disabled={disabled}
+                className={`mt-auto w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 disabled:opacity-40 shadow-xl ${isNeon ? 'bg-accent-neon text-black flex items-center justify-center gap-2 hover:brightness-110 shadow-[0_10px_30px_rgba(226,255,55,0.1)]' : 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:text-white'}`}
+            >
+                {loading ? 'Processing...' : actionLabel}
+            </button>
+        </div>
+    );
+};
 
 export default function MarketsPage({ address, pendleBalances, refreshData, setLoading, loading, setError }) {
     const [wrapAmount, setWrapAmount] = useState('');
     const [ptRedeemAmount, setPtRedeemAmount] = useState('');
     const [earlyExitAmount, setEarlyExitAmount] = useState('');
 
-    const handleWrap = async (e) => {
-        e.preventDefault();
+    const handleWrap = async () => {
         if (!wrapAmount || isNaN(wrapAmount)) return;
         setLoading(true);
         setError(null);
@@ -15,17 +57,15 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
             await wrapPendle(address, parseFloat(wrapAmount));
             setWrapAmount('');
             await refreshData();
-            alert('Wrapped to PT/YT successfully!');
+            alert('Wrapped successfully!');
         } catch (err) {
-            console.error("Wrap Error Stack:", err);
             setError(err.message || 'Wrap failed');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleRedeemPt = async (e) => {
-        e.preventDefault();
+    const handleRedeemPt = async () => {
         if (!ptRedeemAmount || isNaN(ptRedeemAmount)) return;
         setLoading(true);
         setError(null);
@@ -33,10 +73,14 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
             await redeemPt(address, parseFloat(ptRedeemAmount));
             setPtRedeemAmount('');
             await refreshData();
-            alert('PT Redeemed successfully!');
+            alert('PT Redeemed!');
         } catch (err) {
-            console.error("PT Redeem Error Stack:", err);
-            setError(err.message || 'PT Redeem failed (Check maturity?)');
+            console.error("Redeem PT Error:", err);
+            if (err.message?.includes('Unknown error')) {
+                setError("Transaction failed. This often means you're trying to redeem before maturity, or the contract is uninitialized. Try running 'Finish Setup' at the bottom.");
+            } else {
+                setError(err.message || 'PT Redeem failed');
+            }
         } finally {
             setLoading(false);
         }
@@ -48,17 +92,15 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
         try {
             await claimYield(address);
             await refreshData();
-            alert('Yield Claimed successfully!');
+            alert('Yield Claimed!');
         } catch (err) {
-            console.error("Claim Yield Error Stack:", err);
-            setError(err.message || 'Claim Yield failed details');
+            setError(err.message || 'Claim Yield failed');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleEarlyExit = async (e) => {
-        e.preventDefault();
+    const handleEarlyExit = async () => {
         if (!earlyExitAmount || isNaN(earlyExitAmount)) return;
         setLoading(true);
         setError(null);
@@ -66,9 +108,8 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
             await combineAndRedeem(address, parseFloat(earlyExitAmount));
             setEarlyExitAmount('');
             await refreshData();
-            alert('Combined & Redeemed successfully!');
+            alert('Combined & Redeemed!');
         } catch (err) {
-            console.error("Early Exit Error Stack:", err);
             setError(err.message || 'Early Exit failed');
         } finally {
             setLoading(false);
@@ -76,128 +117,127 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
     };
 
     return (
-        <main className="dashboard">
-            <h2 className="section-title">Markets (Liquidity Providers)</h2>
+        <main className="w-full max-w-[1400px] px-8 py-12 pb-24 mx-auto">
+            {/* Header / Stats */}
+            <div className="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8 px-4">
+                {/* <div>
+                    <h2 className="text-7xl font-black text-white tracking-tighter mb-4 italic leading-none">MARKETS</h2>
+                    <p className="text-text-dim font-bold uppercase tracking-[0.4em] text-[10px] opacity-60">Manage your Principal & Yield Asset derivatives</p>
+                </div> */}
 
-            <div className="card-grid-custom">
-                <div className="card" style={{ background: 'rgba(56, 189, 248, 0.05)', borderColor: 'rgba(56, 189, 248, 0.2)' }}>
-                    <div className="card-title">Your PT Balance</div>
-                    <div className="card-value">{pendleBalances.pt}</div>
-                    <div className="status-badge" style={{ background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8' }}>Redeem at Maturity</div>
-                </div>
-
-                <div className="card" style={{ background: 'rgba(168, 85, 247, 0.05)', borderColor: 'rgba(168, 85, 247, 0.2)' }}>
-                    <div className="card-title">Your YT Balance</div>
-                    <div className="card-value">{pendleBalances.yt}</div>
-                    <div className="status-badge" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#a855f7' }}>Earning Yield</div>
+                <div className="flex gap-4">
+                    <div className="bg-white/5 backdrop-blur-3xl px-10 py-5 flex flex-col items-center min-w-[180px] rounded-[24px] border border-white/5 shadow-2xl">
+                        <span className="text-[9px] text-text-dim font-black uppercase tracking-widest block mb-1">wXLM BALANCE</span>
+                        <span className="text-4xl font-black text-white font-mono tracking-tighter">{pendleBalances.wxl}</span>
+                    </div>
+                    <div className="bg-white/5 backdrop-blur-3xl px-10 py-5 flex flex-col items-center min-w-[180px] rounded-[24px] border border-white/5 shadow-2xl">
+                        <span className="text-[9px] text-text-dim font-black uppercase tracking-widest block mb-1">PT BALANCE</span>
+                        <span className="text-4xl font-black text-white font-mono tracking-tighter">{pendleBalances.pt}</span>
+                    </div>
+                    <div className="bg-white/5 backdrop-blur-3xl px-10 py-5 flex flex-col items-center min-w-[180px] rounded-[24px] border border-white/5 shadow-2xl">
+                        <span className="text-[9px] text-text-dim font-black uppercase tracking-widest block mb-1">YT BALANCE</span>
+                        <span className="text-4xl font-black text-white font-mono tracking-tighter">{pendleBalances.yt}</span>
+                    </div>
                 </div>
             </div>
 
-            <div className="actions-grid" style={{ marginTop: '2rem' }}>
-                {/* WRAP */}
-                <div className="card" style={{ borderColor: 'rgba(56, 189, 248, 0.3)' }}>
-                    <h3 style={{ color: '#38bdf8' }}>Wrap wXLM</h3>
-                    <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-                        Split wXLM into Principal Token (PT) and Yield Token (YT).
-                    </p>
-                    <form className="action-form" onSubmit={handleWrap}>
-                        <div className="input-group">
-                            <label>Amount (wXLM)</label>
-                            <input
-                                type="number"
-                                placeholder="0.0"
-                                step="0.0000001"
-                                value={wrapAmount}
-                                onChange={(e) => setWrapAmount(e.target.value)}
-                                disabled={!address || loading}
-                            />
-                        </div>
-                        <button
-                            className="action-btn"
-                            type="submit"
-                            style={{ background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}
-                            disabled={!address || loading || !wrapAmount}
-                        >
-                            {loading ? 'Pr...' : 'Wrap to PT+YT'}
-                        </button>
-                    </form>
-                </div>
+            <div className="bg-panel-glass backdrop-blur-3xl border border-white/10 rounded-[48px] p-8 lg:p-12 shadow-[0_40px_100px_rgba(0,0,0,0.6)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <MarketActionBox
+                        title="Wrap Asset"
+                        subtitle="Split wXLM into PT + YT"
+                        balanceLabel="Max Wrap"
+                        balanceValue={pendleBalances.wxl}
+                        tokenLabel="wXLM"
+                        actionLabel="Confirm Wrap"
+                        onAction={handleWrap}
+                        inputValue={wrapAmount}
+                        onInputChange={setWrapAmount}
+                        loading={loading}
+                        disabled={!address || loading || !wrapAmount}
+                        isNeon={true}
+                    />
 
-                {/* CLAIM YIELD */}
-                <div className="card" style={{ borderColor: 'rgba(168, 85, 247, 0.3)' }}>
-                    <h3 style={{ color: '#a855f7' }}>Claim Yield</h3>
-                    <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-                        Claim accumulated yield from your Yield Tokens (YT).
-                    </p>
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
+                    <div className="bg-card-dark rounded-[32px] p-8 border border-white/5 flex flex-col justify-between hover:border-white/10 transition-all group h-[400px]">
+                        <div>
+                            <div className="flex justify-between items-start mb-6">
+                                <h3 className="text-white font-black text-xl italic uppercase tracking-tighter">Claim Yield</h3>
+                                <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+                                    <svg className="w-5 h-5 text-accent-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </div>
+                            </div>
+                            <p className="text-text-dim text-[10px] uppercase font-bold tracking-widest leading-loose mb-8 opacity-60">Harvest accrued yield from your YT holdings.</p>
+
+                            <div className="bg-black/30 rounded-2xl p-6 border border-white/5 group-hover:bg-black/50 transition-all">
+                                <span className="text-[9px] text-text-dim font-black uppercase tracking-widest block mb-2">Pending</span>
+                                <div className="text-4xl font-black text-white font-mono tracking-tighter flex items-end gap-2">
+                                    {pendleBalances.yt} <span className="text-xs text-text-dim font-bold mb-1">YT</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <button
-                            className="action-btn"
                             onClick={handleClaimYield}
-                            style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#a855f7', border: '1px solid rgba(168, 85, 247, 0.3)' }}
                             disabled={!address || loading}
+                            className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] bg-white/5 text-white border border-white/10 hover:bg-white/10 active:scale-95 transition-all shadow-xl"
                         >
-                            {loading ? 'Pr...' : 'Claim Yield (YT)'}
+                            {loading ? 'Processing...' : 'Harvest Yield'}
                         </button>
                     </div>
-                </div>
 
-                {/* REDEEM PT */}
-                <div className="card">
-                    <h3>Redeem PT</h3>
-                    <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-                        Burn PT to get Principal after Maturity.
-                    </p>
-                    <form className="action-form" onSubmit={handleRedeemPt}>
-                        <div className="input-group">
-                            <label>Amount (PT)</label>
-                            <input
-                                type="number"
-                                placeholder="0.0"
-                                step="0.0000001"
-                                value={ptRedeemAmount}
-                                onChange={(e) => setPtRedeemAmount(e.target.value)}
-                                disabled={!address || loading}
-                            />
-                        </div>
-                        <button
-                            className="action-btn"
-                            type="submit"
-                            style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
-                            disabled={!address || loading || !ptRedeemAmount}
-                        >
-                            {loading ? 'Pr...' : 'Redeem PT'}
-                        </button>
-                    </form>
-                </div>
+                    <MarketActionBox
+                        title="Redeem PT"
+                        subtitle="Maturity principal redemption"
+                        balanceLabel="Principal"
+                        balanceValue={pendleBalances.pt}
+                        tokenLabel="PT"
+                        actionLabel="Redeem Now"
+                        onAction={handleRedeemPt}
+                        inputValue={ptRedeemAmount}
+                        onInputChange={setPtRedeemAmount}
+                        loading={loading}
+                        disabled={!address || loading || !ptRedeemAmount}
+                        isNeon={false}
+                    />
 
-                {/* EARLY EXIT */}
-                <div className="card">
-                    <h3>Early Exit</h3>
-                    <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-                        Combine PT + YT to exit back to wXLM anytime.
-                    </p>
-                    <form className="action-form" onSubmit={handleEarlyExit}>
-                        <div className="input-group">
-                            <label>Amount (PT+YT)</label>
-                            <input
-                                type="number"
-                                placeholder="0.0"
-                                step="0.0000001"
-                                value={earlyExitAmount}
-                                onChange={(e) => setEarlyExitAmount(e.target.value)}
-                                disabled={!address || loading}
-                            />
-                        </div>
-                        <button
-                            className="action-btn"
-                            type="submit"
-                            style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
-                            disabled={!address || loading || !earlyExitAmount}
-                        >
-                            {loading ? 'Pr...' : 'Combine & Redeem'}
-                        </button>
-                    </form>
+                    <MarketActionBox
+                        title="Early Exit"
+                        subtitle="Merge PT+YT for immediate exit"
+                        balanceLabel="Sync Exit"
+                        balanceValue="--"
+                        tokenLabel="PT+YT"
+                        actionLabel="Flash Redeem"
+                        onAction={handleEarlyExit}
+                        inputValue={earlyExitAmount}
+                        onInputChange={setEarlyExitAmount}
+                        loading={loading}
+                        disabled={!address || loading || !earlyExitAmount}
+                        isNeon={false}
+                    />
                 </div>
+            </div>
+
+            {/* Developer Section */}
+            <div className="mt-20 border-t border-white/5 pt-10 flex flex-col items-center gap-4">
+                <span className="text-[10px] text-text-dim uppercase tracking-[0.5em] font-black">Contract Developer Utils</span>
+                <button
+                    onClick={async () => {
+                        if (!address) return;
+                        setLoading(true);
+                        setError(null);
+                        try {
+                            await initializeWrapper(address);
+                            alert('Derivative Wrapper Initialized!');
+                        } catch (e) {
+                            setError(e.message);
+                        } finally {
+                            setLoading(false);
+                        }
+                    }}
+                    className="px-6 py-2 rounded-xl bg-white/5 border border-white/10 text-[9px] text-text-dim font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all"
+                >
+                    Finish Setup: Init Wrapper
+                </button>
             </div>
         </main>
     );

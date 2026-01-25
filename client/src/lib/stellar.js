@@ -19,8 +19,9 @@ import {
     nativeToScVal,
 } from "@stellar/stellar-sdk";
 
-const YIELD_VAULT_ID = "CCNJFISZLU5SBZKZ5TMOTUDDPVRSZ5ZAF3JL3MAYMDUC324FIKXIUUT6";
-const PENDLE_WRAPPER_ID = "CBGG2YIJYT4AXZHXKSNWQ3PMY5FUTXRCXZDDCPM5URPQYEHBGUL2KJSI"; // TODO: Update this ID!
+const YIELD_VAULT_ID = "CATNROCPPQDOTOJJXY3KRN67AGHIUKE6HHSL5P25WUWHCFUPTHV2W5VK";
+const PENDLE_WRAPPER_ID = "CDTEVYD4LOV24UMVJNFMM2K7PKBPDPRTEWMLBGAFUXICD6UDFB4M4IFR";
+const MARKETPLACE_ID = "CBGKPNLESKNVWRHRAAOPABPZ2QLENAYKBUFOYJKUBDNIEKNAEZG5RHW6";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = Networks.TESTNET;
 
@@ -178,10 +179,112 @@ export const getPendleBalances = async (userAddress) => {
     }
 };
 
-const scaleDown = (val) => {
+export const initializeVault = async (userAddress) => {
+    const XLM_TOKEN = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+    return await invokeContract(YIELD_VAULT_ID, userAddress, "initialize", [
+        { type: "address", value: XLM_TOKEN },
+    ]);
+};
+
+export const initializeWrapper = async (userAddress) => {
+    return await invokeContract(PENDLE_WRAPPER_ID, userAddress, "initialize", [
+        { type: "address", value: YIELD_VAULT_ID },
+        { type: "u64", value: 0 }, // Maturity = 0 for instant testing
+    ]);
+};
+
+export const scaleDown = (val) => {
     return (Number(val) / 10 ** 7).toFixed(4);
 }
 
+export const initializeMarket = async (userAddress) => {
+    // Uses the constants defined at the top of the file
+    const pendleAddr = PENDLE_WRAPPER_ID;
+    const xlmAddr = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"; // Standard testnet XLM
+
+    return await invokeContract(MARKETPLACE_ID, userAddress, "initialize", [
+        { type: "address", value: pendleAddr },
+        { type: "address", value: xlmAddr },
+    ]);
+};
+
+// --- Marketplace Functions ---
+export const listPt = async (userAddress, amount) => {
+    return await invokeContract(MARKETPLACE_ID, userAddress, "list_pt", [
+        { type: "address", value: userAddress },
+        { type: "i128", value: BigInt(Math.floor(amount * 10 ** 7)) },
+    ]);
+};
+
+export const buyPt = async (userAddress, amount) => {
+    return await invokeContract(MARKETPLACE_ID, userAddress, "buy_market_pt", [
+        { type: "address", value: userAddress },
+        { type: "i128", value: BigInt(Math.floor(amount * 10 ** 7)) },
+    ]);
+};
+
+export const listYt = async (userAddress, amount) => {
+    return await invokeContract(MARKETPLACE_ID, userAddress, "list_yt", [
+        { type: "address", value: userAddress },
+        { type: "i128", value: BigInt(Math.floor(amount * 10 ** 7)) },
+    ]);
+};
+
+export const buyYt = async (userAddress, amount) => {
+    return await invokeContract(MARKETPLACE_ID, userAddress, "buy_market_yt", [
+        { type: "address", value: userAddress },
+        { type: "i128", value: BigInt(Math.floor(amount * 10 ** 7)) },
+    ]);
+};
+
+export const getMarketLiquidity = async () => {
+    try {
+        // total PT held by the marketplace contract itself (from its own PT balance check if implementing pendle_token.balance)
+        // or just return 0 if pendle contract doesn't expose it. 
+        // Based on lib.rs, we can try to call get_pt_balance of wrapper for the MARKETPLACE_ID
+        const total = await invokeReadOnly(PENDLE_WRAPPER_ID, "get_pt_balance", [
+            nativeToScVal(MARKETPLACE_ID, { type: "address" })
+        ]);
+        return scaleDown(total);
+    } catch (e) {
+        console.error("Error fetching market liquidity:", e);
+        return "0.0000";
+    }
+}
+
+export const getYtMarketLiquidity = async () => {
+    try {
+        const total = await invokeReadOnly(PENDLE_WRAPPER_ID, "get_yt_balance", [
+            nativeToScVal(MARKETPLACE_ID, { type: "address" })
+        ]);
+        return scaleDown(total);
+    } catch (e) {
+        console.error("Error fetching YT market liquidity:", e);
+        return "0.0000";
+    }
+}
+
+export const getMyListing = async (userAddress) => {
+    try {
+        const val = await invokeReadOnly(MARKETPLACE_ID, "get_pt_listing", [
+            nativeToScVal(userAddress, { type: "address" })
+        ]);
+        return scaleDown(val);
+    } catch (e) {
+        return "0.0000";
+    }
+}
+
+export const getMyYtListing = async (userAddress) => {
+    try {
+        const val = await invokeReadOnly(MARKETPLACE_ID, "get_yt_listing", [
+            nativeToScVal(userAddress, { type: "address" })
+        ]);
+        return scaleDown(val);
+    } catch (e) {
+        return "0.0000";
+    }
+}
 
 export const setRate = async (userAddress, newRate) => {
     return await invokeContract(YIELD_VAULT_ID, userAddress, "set_rate", [
@@ -233,7 +336,8 @@ const invokeContract = async (contractId, userAddress, method, args) => {
         }
 
         if (sentTx.status === "ERROR") {
-            throw new Error(`Transaction failed: ${sentTx.errorResultXdr || "Unknown error"}`);
+            console.error("Transaction Error Detail:", sentTx);
+            throw new Error(`Transaction failed: ${sentTx.errorResultXdr || "Check console for detail"}`);
         }
 
         return sentTx;

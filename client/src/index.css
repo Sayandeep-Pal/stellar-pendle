@@ -1,35 +1,79 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+@import "tailwindcss";
 
-:root {
-  --bg-color: #020617;
-  --card-bg: rgba(30, 41, 59, 0.5);
-  --primary: #38bdf8;
-  --secondary: #818cf8;
-  --accent: #f472b6;
-  --text: #f8fafc;
-  --text-dim: #94a3b8;
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --success: #10b981;
+@theme {
+  --color-app-bg: #0b0b0c;
+  /* Very Dark Charcoal */
+  --color-card-dark: #121214;
+  /* Recessed Panel Dark */
+  --color-panel-glass: rgba(28, 28, 30, 0.7);
+  /* Frosted Container */
+  --color-accent-neon: #e2ff37;
+  /* Neon Lime/Yellow */
+  --color-text-main: #ffffff;
+  --color-text-dim: #71717a;
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text);
+  background-color: var(--color-app-bg);
+  color: var(--color-text-main);
+  font-family: 'Inter', sans-serif;
   min-height: 100vh;
+  margin: 0;
   overflow-x: hidden;
-  background: radial-gradient(circle at 50% -20%, #1e293b 0%, #020617 80%);
+  background-image:
+    radial-gradient(circle at 50% 10%, #1c1c1e 0%, transparent 60%),
+    radial-gradient(circle at -20% 80%, #121214 0%, transparent 40%);
+  background-attachment: fixed;
 }
 
 #root {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 100%;
 }
