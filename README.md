@@ -1,6 +1,6 @@
 # Stellar Pendle: Decentralized Yield Trading Protocol
 
-Stellar Pendle is a sophisticated yield-trading protocol built on the **Stellar Soroban** network. It brings the concept of yield splitting to the Stellar ecosystem, allowing users to separate yield-bearing assets into **Principal Tokens (PT)** and **Yield Tokens (YT)**. This enables advanced financial strategies like fixed-yield locking, yield speculation, and liquidity provision.
+Stellar Pendle is a sophisticated yield-trading protocol built on the **Stellar Soroban** network. It brings the concept of yield splitting to the Stellar ecosystem, allowing users to separate yield-bearing assets into **Principal Tokens (PT)** and **Yield Tokens (YT)**. This enables advanced financial strategies like fixed-yield locking, yield speculation, and liquidity provision. 
 
 ---
 
