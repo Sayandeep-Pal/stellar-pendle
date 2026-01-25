@@ -111,7 +111,7 @@ function AppContent() {
             S
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-black tracking-tighter text-white italic">StellarPendle</span>
+            <span className="text-xl font-black tracking-tighter text-white italic">Speild</span>
             <span className="text-[9px] text-text-dim font-bold tracking-[0.4em] uppercase">Maximizing Your Returns</span>
           </div>
         </div>
