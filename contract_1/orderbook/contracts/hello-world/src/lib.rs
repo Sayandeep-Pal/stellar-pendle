@@ -103,7 +103,79 @@ impl Marketplace {
 
     // --- VIEW FUNCTIONS ---
 
+
+    // --- SELLER: LIST YT ---
+    pub fn list_yt(env: Env, seller: Address, amount: i128) {
+        seller.require_auth();
+        let pendle_addr: Address = env.storage().instance().get(&MarketDataKey::PendleToken).unwrap();
+        
+        // 1. Transfer YT to Contract (using "transfer_yt")
+        let args: Vec<Val> = vec![&env, seller.into_val(&env), env.current_contract_address().into_val(&env), amount.into_val(&env)];
+        env.invoke_contract::<Val>(&pendle_addr, &Symbol::new(&env, "transfer_yt"), args);
+
+        // 2. Update Balance
+        let current_bal = Self::get_yt_listing(env.clone(), seller.clone());
+        env.storage().persistent().set(&MarketDataKey::SellOrderYT(seller.clone()), &(current_bal + amount));
+
+        // 3. Add to Sellers List
+        let mut list: Vec<Address> = env.storage().instance().get(&MarketDataKey::SellersListYT).unwrap();
+        if !list.contains(seller.clone()) {
+            list.push_back(seller);
+            env.storage().instance().set(&MarketDataKey::SellersListYT, &list);
+        }
+    }
+
+
+    // --- BUYER: MARKET BUY YT (AUTO-MATCH) ---
+    /// Buys `amount_needed` of YT from ANY available sellers automatically.
+    /// Price: 0.05 XLM per YT
+    pub fn buy_market_yt(env: Env, buyer: Address, mut amount_needed: i128) {
+        buyer.require_auth();
+        
+        // Load YT Sellers List
+        let mut list: Vec<Address> = env.storage().instance().get(&MarketDataKey::SellersListYT).unwrap();
+        let pendle_addr: Address = env.storage().instance().get(&MarketDataKey::PendleToken).unwrap();
+        let xlm_addr: Address = env.storage().instance().get(&MarketDataKey::XlmToken).unwrap();
+        let contract_address = env.current_contract_address();
+
+        let mut i = 0;
+        while i < list.len() && amount_needed > 0 {
+            let seller = list.get(i).unwrap();
+            let available = Self::get_yt_listing(env.clone(), seller.clone());
+
+            if available > 0 {
+                let take_amount = if available >= amount_needed { amount_needed } else { available };
+                
+                // COST: 0.05 * amount
+                // Formula: (Amount * 5) / 100
+                let cost = (take_amount * 5) / 100;
+
+                // Transfer XLM: Buyer -> Seller
+                token::Client::new(&env, &xlm_addr).transfer(&buyer, &seller, &cost);
+
+                // Transfer YT: Contract -> Buyer (using "transfer_yt")
+                let args: Vec<Val> = vec![&env, contract_address.into_val(&env), buyer.into_val(&env), take_amount.into_val(&env)];
+                env.invoke_contract::<Val>(&pendle_addr, &Symbol::new(&env, "transfer_yt"), args);
+
+                // Update Seller's listing
+                env.storage().persistent().set(&MarketDataKey::SellOrderYT(seller.clone()), &(available - take_amount));
+
+                amount_needed -= take_amount;
+            }
+            i += 1;
+        }
+
+        if amount_needed > 0 {
+            panic!("Not enough YT available for sale in the entire market!");
+        }
+    }
+
+
     pub fn get_pt_listing(env: Env, seller: Address) -> i128 {
         env.storage().persistent().get(&MarketDataKey::SellOrderPT(seller)).unwrap_or(0)
+    }
+
+    pub fn get_yt_listing(env: Env, seller: Address) -> i128 {
+        env.storage().persistent().get(&MarketDataKey::SellOrderYT(seller)).unwrap_or(0)
     }
 }
