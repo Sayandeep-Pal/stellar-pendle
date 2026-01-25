@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { deposit, redeem, initializeVault } from '../lib/stellar';
+import TransactionModal from '../components/TransactionModal';
 
 const SwapPanel = ({ label, balanceLabel, balanceValue, tokenName, networkName, amount, isEditable, onInputChange }) => {
     return (
@@ -66,6 +67,7 @@ const SwapPanel = ({ label, balanceLabel, balanceValue, tokenName, networkName, 
 export default function VaultPage({ address, balance, rate, metadata, refreshData, setLoading, loading, setError }) {
     const [activeTab, setActiveTab] = useState('deposit');
     const [amount, setAmount] = useState('');
+    const [modalState, setModalState] = useState({ isOpen: false, message: '', type: 'success' });
 
     const handleAction = async () => {
         if (!amount || isNaN(amount)) return;
@@ -74,10 +76,10 @@ export default function VaultPage({ address, balance, rate, metadata, refreshDat
         try {
             if (activeTab === 'deposit') {
                 await deposit(address, parseFloat(amount));
-                alert('Deposit successful!');
+                setModalState({ isOpen: true, message: 'Deposit successful!', type: 'success' });
             } else {
                 await redeem(address, parseFloat(amount));
-                alert('Redeem successful!');
+                setModalState({ isOpen: true, message: 'Redeem successful!', type: 'success' });
             }
             setAmount('');
             await refreshData();
@@ -94,7 +96,14 @@ export default function VaultPage({ address, balance, rate, metadata, refreshDat
     };
 
     return (
-        <main className="flex flex-col items-center w-full py-12 px-4 gap-8">
+        <>
+            <TransactionModal 
+                isOpen={modalState.isOpen}
+                onClose={() => setModalState({ ...modalState, isOpen: false })}
+                message={modalState.message}
+                type={modalState.type}
+            />
+            <main className="flex flex-col items-center w-full py-12 px-4 gap-8">
 
             <div className="bg-panel-glass backdrop-blur-3xl border border-white/10 rounded-[48px] p-10 w-full max-w-[1000px] shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative">
                 {/* Header Tabs - Simplified to Title */}
@@ -134,7 +143,7 @@ export default function VaultPage({ address, balance, rate, metadata, refreshDat
                     >
                         <div className="bg-card-dark border-4 border-[#1c1c1e] rounded-2xl p-3 text-text-dim hover:text-accent-neon hover:scale-110 active:scale-90 transition-all cursor-pointer shadow-black shadow-2xl group/switch">
                             <svg
-                                className={`w-6 h-6 transition-transform duration-500 ${activeTab === 'redeem' ? 'rotate-180 text-accent-neon' : ''}`}
+                                className={`w-6 h-6 transition-transform duration-500 ${activeTab === 'redeem' ? 'text-accent-neon' : ''}`}
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
                             >
                                 <path d="m9 18 6-6-6-6" />
@@ -195,7 +204,7 @@ export default function VaultPage({ address, balance, rate, metadata, refreshDat
                         setError(null);
                         try {
                             await initializeVault(address);
-                            alert('Yield Vault Initialized!');
+                            setModalState({ isOpen: true, message: 'Yield Vault Initialized!', type: 'success' });
                         } catch (e) {
                             setError(e.message);
                         } finally {
@@ -208,5 +217,6 @@ export default function VaultPage({ address, balance, rate, metadata, refreshDat
                 </button>
             </div>
         </main>
+        </>
     );
 }

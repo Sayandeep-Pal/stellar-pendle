@@ -5,6 +5,7 @@ import {
     initializeMarket,
     scaleDown
 } from '../lib/stellar';
+import TransactionModal from '../components/TransactionModal';
 
 const MarketplaceBox = ({ title, subtitle, balanceLabel, balanceValue, tokenLabel, actionLabel, onAction, loading, disabled, inputValue, onInputChange, isNeon, priceNote, onMax }) => {
     return (
@@ -73,6 +74,7 @@ export default function MarketplacePage({ address, pendleBalances, refreshData, 
     const [activeMarket, setActiveMarket] = useState('PT'); // 'PT' or 'YT'
     const [listAmount, setListAmount] = useState('');
     const [buyAmount, setBuyAmount] = useState('');
+    const [modalState, setModalState] = useState({ isOpen: false, message: '', type: 'success' });
 
     const [ptMarketLiquidity, setPtMarketLiquidity] = useState('0.0000');
     const [ptMyListing, setPtMyListing] = useState('0.0000');
@@ -125,7 +127,7 @@ export default function MarketplacePage({ address, pendleBalances, refreshData, 
             setListAmount('');
             await refreshData();
             await updateMarketData();
-            alert(`${activeMarket} Listed successfully!`);
+            setModalState({ isOpen: true, message: `${activeMarket} Listed successfully!`, type: 'success' });
         } catch (err) {
             console.error("Listing Error:", err);
             if (err.message?.includes('InvalidAction')) {
@@ -153,7 +155,7 @@ export default function MarketplacePage({ address, pendleBalances, refreshData, 
             setBuyAmount('');
             await refreshData();
             await updateMarketData();
-            alert(`${activeMarket} Purchased successfully!`);
+            setModalState({ isOpen: true, message: `${activeMarket} Purchased successfully!`, type: 'success' });
         } catch (err) {
             console.error("Purchase Error:", err);
             setError(err.message || `Purchase failed. Ensure enough ${activeMarket} is available and contract is initialized.`);
@@ -168,7 +170,7 @@ export default function MarketplacePage({ address, pendleBalances, refreshData, 
         setError(null);
         try {
             await initializeMarket(address);
-            alert('Marketplace Contract Successfully Initialized!');
+            setModalState({ isOpen: true, message: 'Marketplace Contract Successfully Initialized!', type: 'success' });
             await updateMarketData();
         } catch (err) {
             console.error("Init Error:", err);
@@ -184,7 +186,14 @@ export default function MarketplacePage({ address, pendleBalances, refreshData, 
     const currentPriceNote = activeMarket === 'PT' ? "Fixed Price: 0.95 XLM per 1 PT" : "Fixed Price: 0.05 XLM per 1 YT";
 
     return (
-        <main className="w-full max-w-[1400px] px-8 py-12 pb-24 mx-auto">
+        <>
+            <TransactionModal 
+                isOpen={modalState.isOpen}
+                onClose={() => setModalState({ ...modalState, isOpen: false })}
+                message={modalState.message}
+                type={modalState.type}
+            />
+            <main className="w-full max-w-[1400px] px-8 py-12 pb-24 mx-auto">
             <div className="flex flex-col lg:flex-row justify-between items-end mb-12 gap-8 px-4">
                 <div>
                     <h2 className="text-7xl font-black text-white tracking-tighter mb-4 italic leading-none uppercase">Marketplace</h2>
@@ -295,5 +304,6 @@ export default function MarketplacePage({ address, pendleBalances, refreshData, 
                 </button>
             </div>
         </main>
+        </>
     )
 }

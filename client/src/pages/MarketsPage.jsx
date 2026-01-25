@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { wrapPendle, redeemPt, claimYield, combineAndRedeem, initializeWrapper } from '../lib/stellar';
+import { useState, useEffect } from 'react';
+import { wrapPendle, redeemPt, claimYield, combineAndRedeem, initializeWrapper, getRate } from '../lib/stellar';
+import TransactionModal from '../components/TransactionModal';
 
 const MarketActionBox = ({ title, subtitle, balanceLabel, balanceValue, tokenLabel, actionLabel, onAction, loading, disabled, inputValue, onInputChange, isNeon }) => {
     return (
@@ -48,6 +49,29 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
     const [wrapAmount, setWrapAmount] = useState('');
     const [ptRedeemAmount, setPtRedeemAmount] = useState('');
     const [earlyExitAmount, setEarlyExitAmount] = useState('');
+    const [currentRate, setCurrentRate] = useState(null);
+    const [modalState, setModalState] = useState({ isOpen: false, message: '', type: 'success' });
+
+    // Fetch rate on mount and poll every 10 seconds
+    useEffect(() => {
+        const fetchRate = async () => {
+            try {
+                const rate = await getRate();
+                setCurrentRate(rate);
+            } catch (err) {
+                console.error('Failed to fetch rate:', err);
+            }
+        };
+
+        // Initial fetch
+        fetchRate();
+
+        // Set up polling every 10 seconds
+        const interval = setInterval(fetchRate, 5000);
+
+        // Cleanup on unmount
+        return () => clearInterval(interval);
+    }, []);
 
     const handleWrap = async () => {
         if (!wrapAmount || isNaN(wrapAmount)) return;
@@ -57,7 +81,7 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
             await wrapPendle(address, parseFloat(wrapAmount));
             setWrapAmount('');
             await refreshData();
-            alert('Wrapped successfully!');
+            setModalState({ isOpen: true, message: 'Wrapped successfully!', type: 'success' });
         } catch (err) {
             setError(err.message || 'Wrap failed');
         } finally {
@@ -73,7 +97,7 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
             await redeemPt(address, parseFloat(ptRedeemAmount));
             setPtRedeemAmount('');
             await refreshData();
-            alert('PT Redeemed!');
+            setModalState({ isOpen: true, message: 'PT Redeemed!', type: 'success' });
         } catch (err) {
             console.error("Redeem PT Error:", err);
             if (err.message?.includes('Unknown error')) {
@@ -92,7 +116,7 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
         try {
             await claimYield(address);
             await refreshData();
-            alert('Yield Claimed!');
+            setModalState({ isOpen: true, message: 'Yield Claimed!', type: 'success' });
         } catch (err) {
             setError(err.message || 'Claim Yield failed');
         } finally {
@@ -108,7 +132,7 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
             await combineAndRedeem(address, parseFloat(earlyExitAmount));
             setEarlyExitAmount('');
             await refreshData();
-            alert('Combined & Redeemed!');
+            setModalState({ isOpen: true, message: 'Combined & Redeemed!', type: 'success' });
         } catch (err) {
             setError(err.message || 'Early Exit failed');
         } finally {
@@ -117,7 +141,14 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
     };
 
     return (
-        <main className="w-full max-w-[1400px] px-8 py-12 pb-24 mx-auto">
+        <>
+            <TransactionModal 
+                isOpen={modalState.isOpen}
+                onClose={() => setModalState({ ...modalState, isOpen: false })}
+                message={modalState.message}
+                type={modalState.type}
+            />
+            <main className="w-full max-w-[1400px] px-8 py-12 pb-24 mx-auto">
             {/* Header / Stats */}
             <div className="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8 px-4">
                 {/* <div>
@@ -138,11 +169,17 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
                         <span className="text-[9px] text-text-dim font-black uppercase tracking-widest block mb-1">YT BALANCE</span>
                         <span className="text-4xl font-black text-white font-mono tracking-tighter">{pendleBalances.yt}</span>
                     </div>
+                    <div className="bg-accent-neon/10 backdrop-blur-3xl px-10 py-5 flex flex-col items-center min-w-[180px] rounded-[24px] border border-accent-neon/20 shadow-2xl">
+                        <span className="text-[9px] text-accent-neon font-black uppercase tracking-widest block mb-1">CURRENT RATE</span>
+                        <span className="text-4xl font-black text-accent-neon font-mono tracking-tighter">
+                            {currentRate !== null ? `${((Number(currentRate) - 1000) / 10).toFixed(2)}%` : '...'}
+                        </span>
+                    </div>
                 </div>
             </div>
 
             <div className="bg-panel-glass backdrop-blur-3xl border border-white/10 rounded-[48px] p-8 lg:p-12 shadow-[0_40px_100px_rgba(0,0,0,0.6)]">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <MarketActionBox
                         title="Wrap Asset"
                         subtitle="Split wXLM into PT + YT"
@@ -200,7 +237,7 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
                         isNeon={false}
                     />
 
-                    <MarketActionBox
+                    {/* <MarketActionBox
                         title="Early Exit"
                         subtitle="Merge PT+YT for immediate exit"
                         balanceLabel="Sync Exit"
@@ -213,7 +250,7 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
                         loading={loading}
                         disabled={!address || loading || !earlyExitAmount}
                         isNeon={false}
-                    />
+                    /> */}
                 </div>
             </div>
 
@@ -227,7 +264,7 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
                         setError(null);
                         try {
                             await initializeWrapper(address);
-                            alert('Derivative Wrapper Initialized!');
+                            setModalState({ isOpen: true, message: 'Derivative Wrapper Initialized!', type: 'success' });
                         } catch (e) {
                             setError(e.message);
                         } finally {
@@ -240,5 +277,6 @@ export default function MarketsPage({ address, pendleBalances, refreshData, setL
                 </button>
             </div>
         </main>
+        </>
     );
 }
