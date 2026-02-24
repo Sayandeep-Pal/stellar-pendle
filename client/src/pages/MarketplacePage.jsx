@@ -1,16 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import TradeModal from '../components/TradeModal';
+import { getTotalPtSupply, scaleDown } from '../lib/stellar-wrapper';
 
 const MarketplacePage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedToken, setSelectedToken] = useState('PT');
     const [hoveredRow, setHoveredRow] = useState(null);
     const [mounted, setMounted] = useState(false);
+    const [totalPtSupply, setTotalPtSupply] = useState(null);
 
     useEffect(() => {
         const t = setTimeout(() => setMounted(true), 80);
         return () => clearTimeout(t);
     }, []);
+
+    useEffect(() => {
+        getTotalPtSupply()
+            .then(val => setTotalPtSupply(val))
+            .catch(() => setTotalPtSupply(null));
+    }, []);
+
+    const ptValueDisplay = totalPtSupply !== null
+        ? `$${scaleDown(totalPtSupply)}`
+        : '$—';
 
     const markets = [
         {
@@ -20,8 +32,8 @@ const MarketplacePage = () => {
             maturity: '24 Feb 2026',
             daysLeft: 0,
             yield: '3.3%',
-            liquidity: '$4',
-            volume: '$4',
+            liquidity: ptValueDisplay,
+            volume: ptValueDisplay,
             change: '+0.02%',
             positive: true,
         }
@@ -33,10 +45,10 @@ const MarketplacePage = () => {
     };
 
     const stats = [
-        { label: 'Total Value Locked', value: '$4', sub: '+3.3% this week' },
+        { label: 'Total Value Locked', value: ptValueDisplay, sub: '+3.3% this week' },
         { label: 'Active Markets', value: '1', sub: 'Live on Testnet' },
         { label: 'Avg. Implied Yield', value: '3.3%', sub: 'Annualized APY' },
-        { label: '24h Volume', value: '$4', sub: 'Across all markets' },
+        { label: '24h Volume', value: ptValueDisplay, sub: 'Across all markets' },
     ];
 
     return (
