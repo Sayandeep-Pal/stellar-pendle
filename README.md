@@ -1,4 +1,4 @@
-# Stellar Pendle: Cross-Chain Yield Trading Protocol
+# Spield: Yield Stripping Finance
 
 Stellar Pendle is a production-grade, cross-chain yield-trading protocol that bridges real-world yield from **Ethereum** (sUSDe/sDAI) onto the **Stellar Soroban** network. It allows users to separate yield-bearing assets into **Principal Tokens (PT)** and **Yield Tokens (YT)**, enabling advanced DeFi strategies like fixed-yield locking, leveraged yield speculation, and peer-to-peer yield trading — all without a centralized intermediary.
 
