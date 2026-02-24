@@ -9,23 +9,14 @@ import {
   getPendleBalances
 } from './lib/stellar';
 
+import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import VaultPage from './pages/VaultPage';
 import MarketsPage from './pages/MarketsPage';
 import MarketplacePage from './pages/MarketplacePage';
-
-function NavLink({ to, children }) {
-  const location = useLocation();
-  const isActive = location.pathname === to;
-  return (
-    <Link
-      to={to}
-      className={`px-6 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${isActive ? 'text-white bg-white/10 shadow-[0_4px_20px_rgba(255,255,255,0.05)] border border-white/10' : 'text-text-dim hover:text-white'}`}
-    >
-      {children}
-    </Link>
-  );
-}
+import AdminPage from './pages/AdminPage'; // Added AdminPage
+import TradePage from './pages/TradePage';
+import ReturnToggle from './components/ReturnToggle';
 
 function AppContent() {
   const location = useLocation();
@@ -108,52 +99,33 @@ function AppContent() {
       {/* Background Decorative Dots / Grain */}
       {!isLandingPage && <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>}
 
-      {/* Navbar */}
+      {/* Navbar Component */}
       {!isLandingPage && (
-        <header className="w-full max-w-[1400px] flex justify-between items-center py-10 px-8 relative z-50">
-          <div className="flex items-center gap-4 group cursor-pointer">
-            <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-white text-base shadow-xl group-hover:bg-accent-neon group-hover:text-black transition-all duration-500">
-              S
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tighter text-white italic">Speild</span>
-              <span className="text-[9px] text-text-dim font-bold tracking-[0.4em] uppercase">Maximizing Your Returns</span>
-            </div>
-          </div>
-
-          {/* Navigation Glass Pill */}
-          <nav className="hidden md:flex bg-white/5 backdrop-blur-md p-1.5 gap-2 rounded-[24px] border border-white/5 shadow-2xl">
-            <NavLink to="/">Home</NavLink>
-            <NavLink to="/vault">Vault</NavLink>
-            <NavLink to="/markets">Derivatives</NavLink>
-            <NavLink to="/marketplace">Marketplace</NavLink>
-          </nav>
-
-          {/* Connect Button */}
-          <button
-            className={`relative group/conn overflow-hidden rounded-2xl transition-all duration-300 px-6 py-3 border ${address ? 'bg-white/5 border-white/10' : 'bg-white text-black hover:bg-accent-neon'}`}
-            onClick={handleConnect}
-          >
-            {address ? (
-              <span className="flex items-center gap-3 text-white font-black text-[10px] uppercase tracking-widest">
-                <div className="w-1.5 h-1.5 rounded-full bg-accent-neon animate-pulse shadow-[0_0_10px_rgba(226,255,55,1)]"></div>
-                {address.slice(0, 6)}...{address.slice(-4)}
-              </span>
-            ) : (
-              <span className="relative font-black text-[10px] uppercase tracking-[0.2em]">Connect Wallet</span>
-            )}
-          </button>
-        </header>
+        <Navbar address={address} handleConnect={handleConnect} />
       )}
 
       {/* Mobile Nav */}
-      {!isLandingPage && (
+      {/* {!isLandingPage && (
         <nav className="md:hidden flex w-full justify-center gap-4 mb-4 relative z-10">
-          <NavLink to="/">Home</NavLink>
-          <NavLink to="/vault">Vault</NavLink>
-          <NavLink to="/markets">Markets</NavLink>
+          <Link to="/" className="text-white">Home</Link> */}
+          {/* <Link to="/vault" className="text-white">Vault</Link> */}
+          {/* <Link to="/markets" className="text-white">Markets</Link>
+          <Link to="/marketplace" className="text-white">Marketplace</Link  >
         </nav>
+      )} */}
+
+      {/* Return Toggle Pill - Example Usage if needed separately, otherwise can remove if it was only for Navbar, 
+          but usually the user might want it for the page content too. 
+          Leaving commented out as requested "instead of old nav use this".
+          Wait, user said "instead of the old *Navigation* glass pill section use the updated one".
+          So I've done that in Navbar. The separate ReturnToggle usage (for leveraging/fixed) might still be desired on the page itself?
+          I will leave the standalone one visible if the user wants it, but for now the user specifically asked to use it FOR navigation.
+      */}
+      {/* 
+      {!isLandingPage && (
+         <ReturnToggle onToggle={(mode) => console.log('Switched to:', mode)} />
       )}
+      */}
 
       {!isLandingPage && error && (
         <div className="w-[90%] max-w-[600px] mb-6 bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-2xl flex items-center gap-3 backdrop-blur-sm relative z-10">
@@ -189,6 +161,17 @@ function AppContent() {
           } />
           <Route path="/marketplace" element={
             <MarketplacePage
+              address={address}
+              pendleBalances={pendleBalances}
+              refreshData={refreshData}
+              setLoading={setLoading}
+              loading={loading}
+              setError={setError}
+            />
+          } />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/trade" element={
+            <TradePage
               address={address}
               pendleBalances={pendleBalances}
               refreshData={refreshData}

@@ -1,0 +1,218 @@
+/* ============================================================
+   RETURN TOGGLE — Liquid Glass Pill Navigation
+   ============================================================ */
+
+.return-toggle-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  position: relative;
+  z-index: 50;
+  animation: glass-entrance 0.8s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+/* ---- Pill Shell ----------------------------------------- */
+.return-toggle-pill {
+  position: relative;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  /* Multi-layer liquid glass base */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.055) 0%,
+      rgba(255,255,255,0.015) 100%
+    ),
+    rgba(6, 6, 8, 0.62);
+  backdrop-filter: blur(28px) saturate(200%) brightness(0.95);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(0.95);
+  padding: 5px;
+  border-radius: 100px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-left: 1px solid rgba(255, 255, 255, 0.10);
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow:
+    /* outer depth */
+    0 20px 48px -8px rgba(0, 0, 0, 0.75),
+    0 8px 16px rgba(0, 0, 0, 0.5),
+    /* inner edge shadow */
+    0 0 0 1px rgba(0, 0, 0, 0.55) inset,
+    /* inner top highlight */
+    0 1px 0 rgba(255, 255, 255, 0.1) inset;
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-style: preserve-3d;
+  overflow: hidden;
+  will-change: transform, box-shadow;
+}
+
+/* Gloss sheen sweep */
+.return-toggle-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 100px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.06) 0%,
+    rgba(255,255,255,0.01) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle neon rim on hover */
+.return-toggle-pill::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 100px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(226,255,55,0.12) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.return-toggle-pill:hover {
+  transform: translateY(-2px);
+  border-top-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 24px 56px -8px rgba(0, 0, 0, 0.85),
+    0 12px 24px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 0 30px rgba(226,255,55,0.06);
+}
+
+.return-toggle-pill:hover::after { opacity: 1; }
+
+.return-toggle-pill:active {
+  transform: translateY(0) scale(0.99);
+  transition-duration: 0.12s;
+}
+
+/* ---- Sliding Indicator ----------------------------------- */
+.toggle-slider {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  height: calc(100% - 10px);
+  border-radius: 100px;
+  /* Liquid glass active thumb */
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.26) 0%,
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.45),
+    0 1px 3px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    inset 0 0 12px rgba(255, 255, 255, 0.07);
+  transition: all 0.52s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 0;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Top gloss highlight */
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 8%;
+  right: 8%;
+  height: 40%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.04) 100%
+  );
+  border-radius: 100px 100px 50% 50%;
+  pointer-events: none;
+}
+
+/* Bottom reflected light */
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 15%;
+  right: 15%;
+  height: 30%;
+  background: linear-gradient(
+    to top,
+    rgba(255,255,255,0.06) 0%,
+    transparent 100%
+  );
+  border-radius: 50% 50% 100px 100px;
+  pointer-events: none;
+}
+
+/* ---- Option Labels --------------------------------------- */
+.toggle-option {
+  position: relative;
+  z-index: 1;
+  padding: 10px 26px;
+  border-radius: 50px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.36);
+  font-weight: 700;
+  font-size: 0.71rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition:
+    color 0.35s ease,
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    text-shadow 0.35s ease;
+  user-select: none;
+  font-family: inherit;
+  white-space: nowrap;
+  -webkit-font-smoothing: antialiased;
+}
+
+.toggle-option.active {
+  color: #ffffff;
+  text-shadow:
+    0 0 16px rgba(255, 255, 255, 0.55),
+    0 0 32px rgba(255, 255, 255, 0.15);
+  animation: option-pop 0.55s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+}
+
+.toggle-option:hover:not(.active) {
+  color: rgba(255, 255, 255, 0.72);
+  transform: scale(1.03);
+}
+
+/* ---- Keyframes ------------------------------------------ */
+
+@keyframes option-pop {
+  0%   { filter: blur(4px); opacity: 0.4; transform: scale(0.92); }
+  60%  { filter: blur(0);   opacity: 1;   transform: scale(1.05); }
+  100% { filter: blur(0);   opacity: 1;   transform: scale(1); }
+}
+
+@keyframes glass-entrance {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.94);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
