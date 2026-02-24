@@ -487,9 +487,9 @@ async function fetchAndPushYieldIndex() {
         
         // Ask the real Mainnet sDAI contract: "What is 1 sDAI worth in regular DAI right now?"
         const oneShare = ethers.parseUnits("1", 18); 
-        // const currentAssetsBigInt = await yieldContract.convertToAssets(oneShare);
+        const currentAssetsBigInt = await yieldContract.convertToAssets(oneShare);
         // console.log(typeof currentAssetsBigInt)
-        const currentAssetsBigInt = 2112348772165556440n;
+        // const currentAssetsBigInt = 2112348772165556440n;
         const currentIndexHuman = ethers.formatUnits(currentAssetsBigInt, 18);
         console.log(`📈 [Yield Oracle] LIVE Mainnet sUSDe Index: ${currentIndexHuman}`);
 
