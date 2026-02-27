@@ -20,6 +20,12 @@ Stellar Pendle is a production-grade, cross-chain yield-trading protocol that br
 
 ---
 
+## Links
+- **GitBook** - [Link](https://spield.gitbook.io/self-docs)
+- **Deployed Link** - [Link](https://spield.vercel.app)
+
+---
+
 ## Architecture Overview
 
 The protocol is composed of four tightly integrated smart contracts deployed on Stellar Soroban, backed by a Node.js relayer that connects to an EVM chain and a React/Vite frontend.
@@ -459,3 +465,20 @@ npm run dev
 - **Yield Manipulation:** `update_yield_index` requires `relayer.require_auth()`, preventing arbitrary users from inflating the yield index and draining the vault.
 - **Re-entrancy:** Soroban's execution model does not support re-entrancy by design; cross-contract calls are synchronous and stack-based.
 - **Replay Attacks:** Each EVM transaction hash is permanently recorded in contract storage; the Bridge Contract panics on duplicate `mint` calls.
+
+---
+
+## List of 5+ user wallet addresses (verifiable on Stellar Explorer Testnet)
+- 1st account - GAJLQCVFZNVFBOWVXXWGXKB44FJX72CKAB45XANYPERPIKI5V5MXGWP5
+- 2nd account - GA43FOSDGG7Z7QUT5YVDXFGGPQKWMF72HOHID6SQRXSEUQOOSYBWIRUU
+- 3rd account - GCJWNUQIGTRVWB5Z35JKK55QGNC6ETC22SMYE5HKNNPVQJSGU5HL427N
+- 4th account - GDG6LWK5R5CKD3M2KJ765MUYXIQHVCQFS32S3BPOYNF4YS6E2W4J4B3F
+- 5th account - GBKM52FA6XTDQL775MG5KWLAGU3MPHKGU2VRXWZR2FE773YBBULBFUZV
+- 5th account - GAWLAMVZVZLBCSAIQYJULRAAJW3G5W4GPUJZF3QBKSXKEM4TRED27JOE
+
+---
+
+## Link of Feedbacks:
+- [Google form link](https://docs.google.com/spreadsheets/d/1fkH7NQGINKWL7JLe3ldExt4kLfdEJcwlracBXBXw574/edit?gid=0#gid=0)
+
+---
