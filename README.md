@@ -23,6 +23,8 @@ Stellar Pendle is a production-grade, cross-chain yield-trading protocol that br
 ## Links
 - **GitBook** - [Link](https://spield.gitbook.io/self-docs)
 - **Deployed Link** - [Link](https://spield.vercel.app)
+- **Live Demo** -
+[Link](https://drive.google.com/file/d/1XZ6tmR43Jd-IgNrBM9OnnD3dA4_bGpH1/view?usp=drivesdk)
 
 ---
 
