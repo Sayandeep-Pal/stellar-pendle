@@ -1,6 +1,6 @@
 # Spield: Yield Stripping Finance
 
-Stellar Pendle is a production-grade, cross-chain yield-trading protocol that bridges real-world yield from **Ethereum** (sUSDe/sDAI) onto the **Stellar Soroban** network. It allows users to separate yield-bearing assets into **Principal Tokens (PT)** and **Yield Tokens (YT)**, enabling advanced DeFi strategies like fixed-yield locking, leveraged yield speculation, and peer-to-peer yield trading — all without a centralized intermediary.
+Spield is a production-grade, cross-chain yield-trading protocol that bridges real-world yield from **Ethereum** (sUSDe/sDAI) onto the **Stellar Soroban** network. It allows users to separate yield-bearing assets into **Principal Tokens (PT)** and **Yield Tokens (YT)**, enabling advanced DeFi strategies like fixed-yield locking, leveraged yield speculation, and peer-to-peer yield trading — all without a centralized intermediary.
 
 ---
 
@@ -21,10 +21,9 @@ Stellar Pendle is a production-grade, cross-chain yield-trading protocol that br
 ---
 
 ## Links
+- **Live Demo** - [Link](https://youtu.be/4OnEQjEVcWE)
 - **GitBook** - [Link](https://spield.gitbook.io/self-docs)
 - **Deployed Link** - [Link](https://spield.vercel.app)
-- **Live Demo** -
-[Link](https://drive.google.com/file/d/1XZ6tmR43Jd-IgNrBM9OnnD3dA4_bGpH1/view?usp=drivesdk)
 
 ---
 
@@ -63,7 +62,7 @@ The protocol is composed of four tightly integrated smart contracts deployed on 
 │  │ index()       │ ◄────────────────────────────┤ withdraw      │
 │  └───────────────┘                              ▼               │
 │                               ┌─────────────────────────────┐   │
-│                               │   Pendle Wrapper             │   │
+│                               │    Wrapper             │   │
 │                               │   mint_split / redeem_pt     │   │
 │                               │   claim_yield / combine      │   │
 │                               └───────────────┬─────────────┘   │
@@ -88,14 +87,14 @@ The protocol is composed of four tightly integrated smart contracts deployed on 
 | **Bridge Contract / Yield Oracle** | `CDNOZGG2ZT6J2ZBI6AVX3JLNSOSPMLCB6AFR7E4YOLPBRK3J3JYM33WW` |
 | **stsUSDe Token Contract (SAC)** | `CDO7QZPI2OYXEAD2KMKMJ3744DMUYGSUQSRUFEVDYSDXCGDFGI2CMHY4` |
 | **OrderBook Contract** | `CDHHGWGBGT6APB3CDODQJPGUXLYPIU34VV6PBT7SRRHBY3KEWYJVOQHS` |
-| **PendleWrapper Contract** | `CA4B534BCYQQ2D6S46XEC4WGGL2J5M7347XABEXAG4SU4I4QULJPCMQT` |
+| **Wrapper Contract** | `CA4B534BCYQQ2D6S46XEC4WGGL2J5M7347XABEXAG4SU4I4QULJPCMQT` |
 
 ### Testnet (Stellar Testnet — for development)
 
 | Contract | Address |
 |---|---|
 | **Bridge Contract / Yield Oracle** | `CDN7OWS4YXICY3PULMLRFDC3URCAW233FMXXMSRCEIOV7WYP7SROK3UZ` |
-| **Pendle Wrapper** | `CDTEVYD4LOV24UMVJNFMM2K7PKBPDPRTEWMLBGAFUXICD6UDFB4M4IFR` |
+| ** Wrapper** | `CDTEVYD4LOV24UMVJNFMM2K7PKBPDPRTEWMLBGAFUXICD6UDFB4M4IFR` |
 | **Marketplace / OrderBook** | `CBGKPNLESKNVWRHRAAOPABPZ2QLENAYKBUFOYJKUBDNIEKNAEZG5RHW6` |
 
 ### EVM (Sepolia Testnet)
@@ -136,7 +135,7 @@ The bridge enables a trust-minimized peg between EVM USDC and Stellar stsUSDe to
 
 ## Yield Oracle
 
-The Yield Oracle is the mechanism that imports real-world yield data from Ethereum Mainnet into the Soroban Bridge Contract, making it available to the Pendle Wrapper for yield calculations.
+The Yield Oracle is the mechanism that imports real-world yield data from Ethereum Mainnet into the Soroban Bridge Contract, making it available to the  Wrapper for yield calculations.
 
 ### How It Works
 
