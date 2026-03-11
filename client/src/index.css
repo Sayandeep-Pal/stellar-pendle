@@ -623,3 +623,14 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
     0 8px 32px rgba(0,0,0,0.40),
     0 1px 0 rgba(255,255,255,0.06) inset;
 }
+
+/* ── Landing page keyframes ──────────────────────────────── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-33.333%); }
+}
+@keyframes marquee-reverse {
+  from { transform: translateX(-33.333%); }
+  to   { transform: translateX(0); }
+}
+

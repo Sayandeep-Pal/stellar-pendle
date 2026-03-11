@@ -16,6 +16,21 @@
     window.global = window;
     window.process = { env: {} };
   </script>
+
+  <!-- Tally popup — opens as modal 7 seconds after page load -->
+  <script>
+  window.TallyConfig = {
+    "formId": "ODP9d8",
+    "popup": {
+      "open": {
+        "trigger": "time",
+        "ms": 7000
+      },
+      "layout": "modal"
+    }
+  };
+  </script>
+  <script async src="https://tally.so/widgets/embed.js"></script>
 </head>
 
 <body>
