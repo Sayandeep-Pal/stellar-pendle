@@ -1234,7 +1234,11 @@ export default function LandingPage() {
             {['Docs', 'Twitter'].map((link) => (
               <button key={link} className="text-[10px] font-semibold tracking-[0.12em] uppercase text-white/25
                 hover:text-white/60 transition-colors duration-300">
-                {link}
+                {link==="Docs" ? (
+                  <a href="https://spield.gitbook.io/self-docs" target="_blank" rel="noopener noreferrer">{link}</a>
+                ) : (
+                  <a href="https://x.com/spield_" target="_blank" rel="noopener noreferrer">{link}</a>
+                )}
               </button>
             ))}
           </div>
@@ -1242,7 +1246,7 @@ export default function LandingPage() {
           {/* Right side */}
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-[#E2FF37] animate-pulse shadow-[0_0_6px_rgba(226,255,55,0.7)]" />
-            <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-white/20">Stellar Mainnet</span>
+            <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-white/20">Stellar Ecosystem</span>
           </div>
         </div>
       </footer>
