@@ -483,3 +483,38 @@ npm run dev
 - [Google form link](https://docs.google.com/spreadsheets/d/1fkH7NQGINKWL7JLe3ldExt4kLfdEJcwlracBXBXw574/edit?gid=0#gid=0)
 
 ---
+
+## Actions on Feedbacks
+
+### Feedback: UX optimization needed, facing difficulties to figure out how the PT & YT things working.
+
+**Solution:** PT (Principal Tokens) and YT (Yield Tokens) are derivative tokens created by splitting your stsUSDe deposit:
+
+- **PT (Principal Token):** Represents your principal investment. At maturity, redeem 1 PT for 1 stsUSDe. Before maturity, trade at ~0.97 USDC.
+- **YT (Yield Token):** Represents accumulated yield since your entry. Claim yield anytime by burning all YT to receive stsUSDe profits based on index growth.
+
+**Example Flow:**
+1. Deposit 100 stsUSDe → receive 100 PT + 100 YT
+2. Yield index grows 5% → claim yield on YT to receive 5 stsUSDe profit
+3. At maturity → redeem 100 PT for 100 stsUSDe principal
+
+See the **Trade Page** UI for step-by-step mint/split, claim yield, and combine workflows with real-time balance tracking.
+
+![image](/screenshots/TradePage.png)
+
+![image](/screenshots/FixedReturn.png)
+
+![image](/screenshots/YieldLeverage.png)
+
+
+### Feedback: The concept is a bit difficult to understand, so was confused in the starting
+
+**Solution:** We've built a comprehensive **GitBook** documentation with visual diagrams and step-by-step guides to explain yield stripping, PT/YT mechanics, and the entire protocol flow. Additionally, we've improved the **Trade Page UI** with:
+
+- **Onboarding tooltips** explaining each component
+- **Real-time balance tracking** showing PT, YT, and claimable yield
+- **Interactive examples** demonstrating profit calculations
+- **Guided workflows** for mint/split, claim yield, and combine operations
+
+Start with the **[GitBook](https://spield.gitbook.io/self-docs)** for conceptual clarity, then explore the **Trade Page** for hands-on interaction.
+
