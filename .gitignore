@@ -20,3 +20,5 @@ coverage
 *.zip
 *.tar.gz
 \target
+*.jsonl
+*.db
