@@ -523,3 +523,13 @@ See the **Trade Page** UI for step-by-step mint/split, claim yield, and combine 
 
 Start with the **[GitBook](https://spield.gitbook.io/self-docs)** for conceptual clarity, then explore the **Trade Page** for hands-on interaction.
 
+---
+
+## Advanced Features Implementation
+
+Based on the Black Belt requirements, the repository implements features closely aligning with **Fee Sponsorship** and **Cross-border Flows**.
+
+### 1. Multi-party / Cross-Environment Architecture
+- **Description:** The current architecture employs a segmented, cross-environment security model resembling account abstraction and multi-party coordination. The `seed_amm.js` administrative layer manages a split control environment, ensuring token minting (`mint_split`), liquidity seating, and protocol operations require dedicated treasury keypairs that are compartmentalized from daily relayer operations.
+- **Proof of Implementation:** See `admin/relayer/seed_amm.js` which relies on `TREASURY_KEYPAIR` to specifically sign multi-step actions (mint PT/YT from stSUSDe, adding PT/YT liquidity) via `submitTx`, effectively separating admin funds abstraction from regular protocol interactions.
+
