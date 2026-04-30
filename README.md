@@ -20,6 +20,11 @@ Spield is a production-grade, cross-chain yield-trading protocol that bridges re
  
 ---
 
+## Submission Links
+- **Security Checklist**: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md)
+
+---
+
 ## Links
 - **Live Demo** - [Link](https://youtu.be/V1SY-C441A0)
 - **GitBook** - [Link](https://spield.gitbook.io/self-docs)
